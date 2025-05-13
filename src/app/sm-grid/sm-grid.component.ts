@@ -33,24 +33,38 @@ export class SmGridComponent implements OnInit {
 
   createStudent() {
     this.editingIndex = -1;
+    this.studentData = {
+      name: '',
+      gender: '',
+      course: '',
+      hobbies: [],
+      city: ''
+    };
     this.showForm = true;
   }
 
   editStudent(index: number) {
-    this.studentData = this.gridData.data[index];
+    this.studentData = {
+      name: this.gridData.data[index].name,
+      gender: this.gridData.data[index].gender,
+      course: this.gridData.data[index].course,
+      hobbies: [...this.gridData.data[index].hobbies],
+      city: this.gridData.data[index].city
+    };
     this.editingIndex = index;
     this.showForm = true;
   }
 
   deleteStudent(index: number) {
-    this.gridData.data = this.gridData.data.filter((_, i) => i !== index);
+    this.gridData.data = this.gridData.data.filter((_: GridData, i: number) => i !== index);
     this.setGridData();
   }
 
   formUpdated(formValue: GridData) {
     if (this.editingIndex >= 0) {
-      this.gridData.data[this.editingIndex] = formValue;
-      this.gridData.data = [...this.gridData.data];
+      this.gridData.data = this.gridData.data.map((item: GridData, index: number) =>
+        index === this.editingIndex ? formValue : item
+      );
     } else {
       this.gridData.data = [...this.gridData.data, formValue];
     }

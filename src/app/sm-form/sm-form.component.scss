@@ -1,0 +1,23 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.mat-radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.hobbies-container {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
