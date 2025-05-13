@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { SmFormComponent } from './sm-form/sm-form.component';
+import { SmGridComponent } from './sm-grid/sm-grid.component';
 
 export const routes: Routes = [
-  { path: '', component: SmFormComponent }
+  { path: '', component: SmGridComponent }
 ];
