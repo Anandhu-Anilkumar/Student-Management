@@ -5,20 +5,26 @@ import { GridData } from '../common-interface';
 import { SmFormComponent } from '../sm-form/sm-form.component';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-sm-grid',
   standalone: true,
-  imports: [MatTableModule, MatIconModule, MatButtonModule, SmFormComponent, CommonModule],
+  imports: [
+    MatTableModule,
+    MatIconModule,
+    MatButtonModule,
+    CommonModule,
+    MatDialogModule
+  ],
   templateUrl: './sm-grid.component.html',
   styleUrl: './sm-grid.component.scss'
 })
 export class SmGridComponent implements OnInit {
   public gridColumns: string[] = ['name', 'gender', 'course', 'hobbies', 'city', 'actions'];
   public gridData!: MatTableDataSource<GridData>;
-  public editingIndex: number = -1;
-  public studentData!: GridData;
-  public showForm: boolean = false;
+
+  constructor(private dialog: MatDialog) {}
 
   ngOnInit(): void {
     if (localStorage.getItem('gridData')) {
@@ -32,27 +38,51 @@ export class SmGridComponent implements OnInit {
   }
 
   createStudent() {
-    this.editingIndex = -1;
-    this.studentData = {
-      name: '',
-      gender: '',
-      course: '',
-      hobbies: [],
-      city: ''
-    };
-    this.showForm = true;
+    const dialogRef = this.dialog.open(SmFormComponent, {
+      width: '500px',
+      data: {
+        studentData: {
+          name: '',
+          gender: '',
+          course: '',
+          hobbies: [],
+          city: ''
+        },
+        editingIndex: -1
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.data) {
+        this.gridData.data = [...this.gridData.data, result.data];
+        this.setGridData();
+      }
+    });
   }
 
   editStudent(index: number) {
-    this.studentData = {
-      name: this.gridData.data[index].name,
-      gender: this.gridData.data[index].gender,
-      course: this.gridData.data[index].course,
-      hobbies: [...this.gridData.data[index].hobbies],
-      city: this.gridData.data[index].city
-    };
-    this.editingIndex = index;
-    this.showForm = true;
+    const dialogRef = this.dialog.open(SmFormComponent, {
+      width: '500px',
+      data: {
+        studentData: {
+          name: this.gridData.data[index].name,
+          gender: this.gridData.data[index].gender,
+          course: this.gridData.data[index].course,
+          hobbies: [...this.gridData.data[index].hobbies],
+          city: this.gridData.data[index].city
+        },
+        editingIndex: index
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.data) {
+        this.gridData.data = this.gridData.data.map((item: GridData, i: number) =>
+          i === result.editingIndex ? result.data : item
+        );
+        this.setGridData();
+      }
+    });
   }
 
   deleteStudent(index: number) {
@@ -60,20 +90,7 @@ export class SmGridComponent implements OnInit {
     this.setGridData();
   }
 
-  formUpdated(formValue: GridData) {
-    if (this.editingIndex >= 0) {
-      this.gridData.data = this.gridData.data.map((item: GridData, index: number) =>
-        index === this.editingIndex ? formValue : item
-      );
-    } else {
-      this.gridData.data = [...this.gridData.data, formValue];
-    }
-    this.setGridData();
-  }
-
   private setGridData() {
     localStorage.setItem('gridData', JSON.stringify(this.gridData.data));
-    this.editingIndex = -1;
-    this.showForm = false;
   }
 }

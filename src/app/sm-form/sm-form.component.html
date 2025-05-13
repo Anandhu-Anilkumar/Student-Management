@@ -1,55 +1,67 @@
-<form [formGroup]="studentForm" (ngSubmit)="submitForm()">
-  <mat-form-field appearance="outline">
-    <mat-label>Name</mat-label>
-    <input matInput formControlName="name" required>
-    <mat-error *ngIf="studentForm.get('name')?.hasError('required')">
-      Name is required
-    </mat-error>
-  </mat-form-field>
+<h4 mat-dialog-title *ngIf="isDialog">{{ editingIndex >= 0 ? 'Edit Student' : 'Add Student' }}</h4>
+<h4 *ngIf="!isDialog">{{ editingIndex >= 0 ? 'Edit Student' : 'Add Student' }}</h4>
 
-  <mat-radio-group formControlName="gender" required>
-    <mat-label>Gender: </mat-label>
-    <mat-radio-button value="Male">Male</mat-radio-button>
-    <mat-radio-button value="Female">Female</mat-radio-button>
-  </mat-radio-group>
+<div [ngClass]="{'mat-dialog-content': isDialog}">
+  <form [formGroup]="studentForm" (ngSubmit)="submitForm()">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required>
+      <mat-error *ngIf="studentForm.get('name')?.hasError('required')">
+        Name is required
+      </mat-error>
+    </mat-form-field>
 
-  <mat-form-field appearance="outline">
-    <mat-label>Course</mat-label>
-    <mat-select formControlName="course" required>
-      @for (course of courses; track $index) {
-        <mat-option [value]="course">{{ course }}</mat-option>
+    <mat-radio-group formControlName="gender" required>
+      <mat-label>Gender: </mat-label>
+      <mat-radio-button value="Male">Male</mat-radio-button>
+      <mat-radio-button value="Female">Female</mat-radio-button>
+    </mat-radio-group>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Course</mat-label>
+      <mat-select formControlName="course" required>
+        @for (course of courses; track $index) {
+          <mat-option [value]="course">{{ course }}</mat-option>
+        }
+      </mat-select>
+      <mat-error *ngIf="studentForm.get('course')?.hasError('required')">
+        Course is required
+      </mat-error>
+    </mat-form-field>
+
+    <div class="hobbies-container">
+      <mat-label>Hobbies:</mat-label>
+      @for (hobby of hobbies; track $index) {
+        <mat-checkbox
+          [checked]="(studentForm.get('hobbies')?.value || []).includes(hobby)"
+          (change)="hobbyCheckboxSelection($event.checked, hobby)">
+          {{ hobby }}
+        </mat-checkbox>
       }
-    </mat-select>
-    <mat-error *ngIf="studentForm.get('course')?.hasError('required')">
-      Course is required
-    </mat-error>
-  </mat-form-field>
+    </div>
 
-  <div class="hobbies-container">
-    <mat-label>Hobbies:</mat-label>
-    @for (hobby of hobbies; track $index) {
-      <mat-checkbox
-        [checked]="(studentForm.get('hobbies')?.value || []).includes(hobby)"
-        (change)="hobbyCheckboxSelection($event.checked, hobby)">
-        {{ hobby }}
-      </mat-checkbox>
-    }
-  </div>
+    <mat-form-field appearance="outline">
+      <mat-label>City</mat-label>
+      <input matInput formControlName="city" [matAutocomplete]="auto" required>
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onCitySelected($event)">
+        @for (option of filteredOptions | async; track $index) {
+          <mat-option [value]="option">{{ option }}</mat-option>
+        }
+      </mat-autocomplete>
+      <mat-error *ngIf="studentForm.get('city')?.hasError('required')">
+        City is required
+      </mat-error>
+    </mat-form-field>
+  </form>
+</div>
 
-  <mat-form-field appearance="outline">
-    <mat-label>City</mat-label>
-    <input matInput formControlName="city" [matAutocomplete]="auto" required>
-    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onCitySelected($event)">
-      @for (option of filteredOptions | async; track $index) {
-        <mat-option [value]="option">{{ option }}</mat-option>
-      }
-    </mat-autocomplete>
-    <mat-error *ngIf="studentForm.get('city')?.hasError('required')">
-      City is required
-    </mat-error>
-  </mat-form-field>
-
-  <button mat-raised-button color="primary" type="submit" [disabled]="studentForm.invalid">
+<div [ngClass]="{'mat-dialog-actions': isDialog}" align="end">
+  <button mat-button (click)="onCancel()" *ngIf="isDialog">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="submitForm()"
+    [disabled]="studentForm.invalid">
     {{ editingIndex >= 0 ? 'Update' : 'Submit' }}
   </button>
-</form>
+</div>

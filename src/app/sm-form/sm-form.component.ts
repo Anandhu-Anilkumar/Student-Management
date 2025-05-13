@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnInit, Output, Optional } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -7,6 +7,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { GridData } from '../common-interface';
@@ -23,23 +24,35 @@ import { GridData } from '../common-interface';
     MatRadioModule,
     MatCheckboxModule,
     MatAutocompleteModule,
-    MatButtonModule
+    MatButtonModule,
+    MatDialogModule
   ],
   templateUrl: './sm-form.component.html',
   styleUrl: './sm-form.component.scss'
 })
-export class SmFormComponent implements OnInit, OnChanges {
-  @Output() formUpdated: EventEmitter<GridData> = new EventEmitter<GridData>();
+export class SmFormComponent implements OnInit {
   @Input() editingIndex: number = -1;
-  @Input() studentData!: GridData;
+  @Input() studentData?: GridData;
+  @Output() formUpdated = new EventEmitter<GridData>();
 
   public studentForm!: FormGroup;
   public filteredOptions!: Observable<string[]>;
   public courses: string[] = ['Science', 'Commerce', 'Arts'];
   public hobbies: string[] = ['Reading', 'Sports', 'Music'];
   public cities: string[] = ['Kochi', 'Delhi', 'Mumbai'];
+  public isDialog: boolean = false;
 
-  constructor(private _fb: FormBuilder) { }
+  constructor(
+    private _fb: FormBuilder,
+    @Optional() private dialogRef: MatDialogRef<SmFormComponent>,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: { studentData: GridData; editingIndex: number }
+  ) {
+    this.isDialog = !!dialogRef;
+    if (this.isDialog && data) {
+      this.studentData = data.studentData;
+      this.editingIndex = data.editingIndex;
+    }
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -47,16 +60,6 @@ export class SmFormComponent implements OnInit, OnChanges {
       this.updateFormValues(this.studentData);
     }
     this.handleAutoComplete();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['studentData'] && changes['studentData'].currentValue) {
-      const newData = changes['studentData'].currentValue;
-      if (!this.studentForm) {
-        this.initForm();
-      }
-      this.updateFormValues(newData);
-    }
   }
 
   private updateFormValues(data: GridData): void {
@@ -86,7 +89,7 @@ export class SmFormComponent implements OnInit, OnChanges {
       startWith(''),
       map((value: string) => {
         const filterValue = value ? value.toLowerCase() : '';
-        return this.cities.filter((option: string) =>
+        return this.cities.filter((option: string) => 
           option.toLowerCase().includes(filterValue)
         );
       })
@@ -112,6 +115,10 @@ export class SmFormComponent implements OnInit, OnChanges {
     this.studentForm.patchValue({ city: event.option.value });
   }
 
+  onCancel(): void {
+    this.dialogRef.close();
+  }
+
   submitForm(): void {
     if (this.studentForm.valid) {
       const formValue: GridData = {
@@ -121,8 +128,12 @@ export class SmFormComponent implements OnInit, OnChanges {
         hobbies: [...(this.studentForm.get('hobbies')?.value || [])],
         city: this.studentForm.get('city')?.value
       };
-      this.formUpdated.emit(formValue);
-      this.studentForm.reset();
+      
+      if (this.isDialog) {
+        this.dialogRef.close({ data: formValue, editingIndex: this.editingIndex });
+      } else {
+        this.formUpdated.emit(formValue);
+      }
     }
   }
 }

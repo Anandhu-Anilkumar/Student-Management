@@ -5,7 +5,6 @@
     <button
       mat-raised-button
       color="primary"
-      [disabled]="showForm"
       (click)="createStudent()">
       Add Student
     </button>
@@ -28,7 +27,13 @@
       } @else {
         <ng-container [matColumnDef]="column">
           <mat-header-cell *matHeaderCellDef>{{column}}</mat-header-cell>
-          <mat-cell *matCellDef="let student">{{ student[column] }}</mat-cell>
+          <mat-cell *matCellDef="let student">
+            @if (column === 'hobbies') {
+              {{student[column].join(', ')}}
+            } @else {
+              {{student[column]}}
+            }
+          </mat-cell>
         </ng-container>
       }
     }
@@ -36,12 +41,4 @@
     <mat-header-row *matHeaderRowDef="gridColumns"></mat-header-row>
     <mat-row *matRowDef="let row; columns: gridColumns"></mat-row>
   </mat-table>
-
-  @if (showForm) {
-    <app-sm-form
-      [editingIndex]="editingIndex"
-      [studentData]="studentData"
-      (formUpdated)="formUpdated($event)">
-    </app-sm-form>
-  }
 </div>
