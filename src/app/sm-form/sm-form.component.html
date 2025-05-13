@@ -9,6 +9,9 @@
       <mat-error *ngIf="studentForm.get('name')?.hasError('required')">
         Name is required
       </mat-error>
+      <mat-error *ngIf="studentForm.get('name')?.hasError('pattern')">
+        Name can only contain letters and spaces
+      </mat-error>
     </mat-form-field>
 
     <mat-radio-group formControlName="gender" required>

@@ -76,7 +76,7 @@ export class SmFormComponent implements OnInit {
 
   private initForm(): void {
     this.studentForm = this._fb.group({
-      name: ['', Validators.required],
+      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]*$')]],
       gender: ['', Validators.required],
       course: ['', Validators.required],
       hobbies: [[]],
